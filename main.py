@@ -1,5 +1,4 @@
 import os
-import logging
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -15,8 +14,6 @@ QIITA_API_TOKEN = os.environ.get("QIITA_API_TOKEN", "")  # Qiitaの個人アク�
 # public(https://qiita.com) か、Qiita:Team (例: https://your-team.qiita.com)
 QIITA_BASE_URL = os.environ.get("QIITA_BASE_URL", "https://qiita.com")
 
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger("qiita-mcp")
 
 # 共通ヘッダ（トークンがあれば Authorization を付与）
 def _headers() -> Dict[str, str]:
