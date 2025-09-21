@@ -30,3 +30,5 @@ You can create token here. https://qiita.com/settings/tokens/new
 <img width="1079" height="488" alt="image" src="https://github.com/user-attachments/assets/8b8e7d46-6120-4362-8456-b7d90fc264f9" />
 
 6. Chat with AI
+![ChatGPT - Google Chrome 2025-09-21 16-15-34](https://github.com/user-attachments/assets/ead3999c-13fe-4918-b502-a3c8553db702)
+
