@@ -4,6 +4,9 @@ import httpx
 from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_request
 
+def set_auth_header():
+    httpx.headers['Authorization'] = 'Bearer ' + get_http_request().query_params.get('token')
+
 SERVER_INSTRUCTIONS = """
 Qiita API と連携する Model Context Protocol (MCP) サーバです。
 以下のツールを提供します:
@@ -16,7 +19,7 @@ Qiita API と連携する Model Context Protocol (MCP) サーバです。
 ChatGPT の Connectors から「Remote MCP server (SSE)」として /sse に接続してください。
 """
 
-mcp = FastMCP(name="Qiita MCP (Python)", instructions=SERVER_INSTRUCTIONS)
+mcp = FastMCP('Qiita MCP', SERVER_INSTRUCTIONS)
 
 # -----------------------------
 # Tools
@@ -86,10 +89,6 @@ async def get_my_qiita_articles(page: int = 1, per_page: int = 20) -> Dict[str, 
     """
     自分の投稿一覧を取得します (GET /api/v2/authenticated_user/items). 要アクセストークン(read_qiita)
     """
-    token = get_http_request().query_params.get("token")
-    print(token)
-    if token:
-        httpx.headers["Authorization"] = f"Bearer {token}"
     resp = await httpx.get("https://qiita.com/api/v2/authenticated_user/items", params={"page": page, "per_page": per_page})
     resp.raise_for_status()
     return {"results": resp.json()}
