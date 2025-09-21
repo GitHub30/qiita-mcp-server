@@ -124,7 +124,6 @@ async def post_qiita_article(
         payload["organization_url_name"] = organization_url_name
     # Qiita API にそのまま渡す
     resp = await client.post("items", json=payload)
-    _raise_on_4xx(resp)
     return resp.json()
 
 
@@ -155,7 +154,6 @@ async def update_qiita_article(
         return {"message": "Nothing to update."}
 
     resp = await client.patch(f"items/{item_id}", json=patch)
-    _raise_on_4xx(resp)
     return resp.json()
 
 
@@ -170,18 +168,6 @@ async def get_qiita_markdown_rules() -> Dict[str, Any]:
             "https://qiita.com/api/v2/docs",
         ]
     }
-
-def _raise_on_4xx(resp: httpx.Response):
-    try:
-        resp.raise_for_status()
-    except httpx.HTTPStatusError as e:
-        # Qiita のエラーフォーマットに合わせて投げ直す
-        try:
-            detail = resp.json()
-        except Exception:
-            detail = {"message": resp.text}
-        raise ValueError(f"Qiita API error {resp.status_code}: {detail}") from e
-
 
 if __name__ == "__main__":
     mcp.run(transport="http")
