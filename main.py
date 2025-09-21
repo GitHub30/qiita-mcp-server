@@ -1,34 +1,8 @@
-import os
 from typing import Any, Dict, List, Optional
 
 import httpx
 from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_request
-
-
-# -----------------------------
-# Settings
-# -----------------------------
-PORT = int(os.environ.get("PORT", "8000"))  # Replit では $PORT が渡される
-QIITA_API_TOKEN = os.environ.get("QIITA_API_TOKEN", "")  # Qiitaの個人アクセストークン
-# public(https://qiita.com) か、Qiita:Team (例: https://your-team.qiita.com)
-QIITA_BASE_URL = os.environ.get("QIITA_BASE_URL", "https://qiita.com")
-
-
-# 共通ヘッダ（トークンがあれば Authorization を付与）
-def _headers() -> Dict[str, str]:
-    h = {"Accept": "application/json"}
-    if QIITA_API_TOKEN:
-        h["Authorization"] = f"Bearer {QIITA_API_TOKEN}"
-
-    return h
-
-# HTTP クライアント（接続プール・タイムアウト設定）
-client = httpx.AsyncClient(
-    base_url=f"{QIITA_BASE_URL}/api/v2",
-    headers=_headers(),
-    timeout=httpx.Timeout(15.0, connect=10.0),
-)
 
 SERVER_INSTRUCTIONS = """
 Qiita API と連携する Model Context Protocol (MCP) サーバです。
@@ -67,8 +41,8 @@ async def search_qiita_items(
     """
     # 認証不要（ただしレートリミットは厳しめ）
     # https://qiita.com/api/v2/docs の Item セクションに準拠
-    resp = await client.get(
-        "/items",
+    resp = await httpx.get(
+        "https://qiita.com/api/v2/items",
         params={"query": query, "page": page, "per_page": per_page},
     )
     resp.raise_for_status()
@@ -102,7 +76,7 @@ async def get_qiita_item(item_id: str) -> Dict[str, Any]:
     記事IDで取得します (GET /api/v2/items/:item_id).
     Returns: {id, title, body(markdown), rendered_body(html), tags, url, user, ...}
     """
-    resp = await client.get(f"/items/{item_id}")
+    resp = await httpx.get(f"https://qiita.com/api/v2/items/{item_id}")
     resp.raise_for_status()
     return resp.json()
 
@@ -112,12 +86,11 @@ async def get_my_qiita_articles(page: int = 1, per_page: int = 20) -> Dict[str, 
     """
     自分の投稿一覧を取得します (GET /api/v2/authenticated_user/items). 要アクセストークン(read_qiita)
     """
-    _require_token()
     token = get_http_request().query_params.get("token")
     print(token)
     if token:
-        client.headers["Authorization"] = f"Bearer {token}"
-    resp = await client.get("/authenticated_user/items", params={"page": page, "per_page": per_page})
+        httpx.headers["Authorization"] = f"Bearer {token}"
+    resp = await httpx.get("https://qiita.com/api/v2/authenticated_user/items", params={"page": page, "per_page": per_page})
     resp.raise_for_status()
     return {"results": resp.json()}
 
@@ -144,8 +117,6 @@ async def post_qiita_article(
 
     Returns: 作成された記事オブジェクト
     """
-    # show get params for debugging
-    _require_token()
     payload: Dict[str, Any] = {
         "title": title,
         "body": body,
@@ -156,7 +127,7 @@ async def post_qiita_article(
     if organization_url_name:
         payload["organization_url_name"] = organization_url_name
     # Qiita API にそのまま渡す
-    resp = await client.post("/items", json=payload)
+    resp = await httpx.post("https://qiita.com/api/v2/items", json=payload)
     _raise_on_4xx(resp)
     return resp.json()
 
@@ -174,7 +145,6 @@ async def update_qiita_article(
 
     指定した項目のみ部分更新します。
     """
-    _require_token()
     patch: Dict[str, Any] = {}
     if title is not None:
         patch["title"] = title
@@ -188,7 +158,7 @@ async def update_qiita_article(
     if not patch:
         return {"message": "Nothing to update."}
 
-    resp = await client.patch(f"/items/{item_id}", json=patch)
+    resp = await httpx.patch(f"https://qiita.com/api/v2/items/{item_id}", json=patch)
     _raise_on_4xx(resp)
     return resp.json()
 
@@ -204,13 +174,6 @@ async def get_qiita_markdown_rules() -> Dict[str, Any]:
             "https://qiita.com/api/v2/docs",
         ]
     }
-
-
-def _require_token():
-
-    if not QIITA_API_TOKEN:
-        pass
-
 
 def _raise_on_4xx(resp: httpx.Response):
     try:
