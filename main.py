@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional
 import httpx
 from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_request
-from fastmcp.server.middleware.logging import LoggingMiddleware, StructuredLoggingMiddleware
 
 
 # -----------------------------
@@ -47,7 +46,6 @@ ChatGPT の Connectors から「Remote MCP server (SSE)」として /sse に接�
 """
 
 mcp = FastMCP(name="Qiita MCP (Python)", instructions=SERVER_INSTRUCTIONS)
-mcp.add_middleware(LoggingMiddleware(include_payloads=True, max_payload_length=4000))
 
 # -----------------------------
 # Tools
