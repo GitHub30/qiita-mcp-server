@@ -31,5 +31,6 @@ You can create token here. https://qiita.com/settings/tokens/new
 
 6. Chat with AI
 
-![ChatGPT - Google Chrome 2025-09-21 16-36-12](https://github.com/user-attachments/assets/adf11f18-7f83-4c10-9205-232facc3a2c3)
+![ChatGPT - Google Chrome 2025-09-21 16-36-12](https://github.com/user-attachments/assets/b9a4f59c-937f-4e78-b091-460e9b372421)
+
 
